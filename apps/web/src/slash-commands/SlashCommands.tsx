@@ -31,6 +31,7 @@ import { topicToHtml } from "../HtmlUtils";
 import QuestionDialog from "../components/views/dialogs/QuestionDialog";
 import WidgetUtils from "../utils/WidgetUtils";
 import { textToHtmlRainbow } from "../utils/colour";
+import Markdown from "../Markdown";
 import { AddressType, getAddressType } from "../UserAddress";
 import { abbreviateUrl } from "../utils/UrlUtils";
 import { getDefaultIdentityServerUrl, setToDefaultIdentityServer } from "../utils/IdentityServerUtils";
@@ -73,7 +74,10 @@ export const Commands = [
         args: "<message>",
         description: _td("slash_command|spoiler"),
         runFn: function (cli, roomId, threadId, message = "") {
-            return successSync(ContentHelpers.makeHtmlMessage(message, `<span data-mx-spoiler>${message}</span>`));
+            // Format the message as markdown so that e.g. `**bold**` inside the spoiler is rendered.
+            // Strip the single paragraph wrapper so the spoiler stays an inline span.
+            const html = new Markdown(message).toHTML().replace(/^<p>([\s\S]*)<\/p>\n?$/, "$1");
+            return successSync(ContentHelpers.makeHtmlMessage(message, `<span data-mx-spoiler>${html}</span>`));
         },
         category: CommandCategories.messages,
     }),
